@@ -22,14 +22,60 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+# RETRO STEPS
 
 ## Installation
 
 ```bash
+$ git clone
+```
+
+Instalar yarn
+
+```bash
 $ yarn install
+```
+
+Para instalar class verificator
+
+```bash
+yarn add class-validator class-transformer
+```
+
+Para instalar BCrypt
+
+```bash
+yarn add bcrypt
+yarn add -D @types/bcrypt
+```
+
+Para instalar TypeORM
+
+```bash
+yarn add @nestjs/typeorm typeorm pg
+```
+
+Para instalar JWT passport
+
+```bash
+yarn add @nestjs/passport passport
+
+yarn add @nestjs/jwt passport-jwt
+yarn add -D @types/passport-jwt
+```
+
+Para que NEST lea las env
+
+```bash
+yarn add @nestjs/config
+
+Configurar .env segun template
+```
+
+Levantar DOCKER
+
+```bash
+$ docker-compose up -d
 ```
 
 ## Running the app
@@ -44,30 +90,3 @@ $ yarn run start:dev
 # production mode
 $ yarn run start:prod
 ```
-
-## Test
-
-```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).

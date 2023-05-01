@@ -123,3 +123,144 @@ app.useGlobalPipes(
   }),
 );
 ```
+
+# CREANDO AUTH
+
+toma javascript web tokens, para proteger las rutas y el acceso a la db
+
+el modulo de AUTH se comunica y hace join con el modulo de USERS para darle mantenimiento, tiene una dependencia mutua
+
+el InputType es la informacion que la query o mutation espera recibir
+
+el ObjectType es lo que espera devolver
+
+el AuthResponse es una representacion abstracta
+
+para nest, si quiero usar algun item de un modulo en otro, tiene que estar importado en el ALGO.module, con exports: [algoService] e importado en el modulo que quiero que lo use con imports: [algoModule] (incluye todo lo que esta dentro de ese module, includio el service a usar)
+
+## encriptar passwords
+
+yarn add bcrypt
+importarlo:
+import \* as bcrypt from 'bcrypt';
+
+luego
+yarn add -D @types/bcrypt
+
+lo bueno, es que si 2 passwords son iguales no importa, genera crypted distintos
+
+## modulos pasaporte y jwt (tokens)
+
+yarn add @nestjs/passport passport
+
+yarn add @nestjs/jwt passport-jwt
+yarn add -D @types/passport-jwt
+
+## seeds secrets
+
+en el archivo .env
+
+```ts
+JWT_SECRET = ALGO;
+JWT_EXPIRES = ALGO;
+```
+
+luego, configurar los imports en el modulo auth o app
+
+```ts
+imports: [
+    ConfigModule,
+    // importar passport
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    // importar JWT
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      //useFactory para definir de manera async la creacion del modulo auth
+      useFactory: (configService: ConfigService) => ({
+        // retorna un objeto, verificar sus valores
+        // console.log(configService.get('JWT_SECRET'));
+        // console.log(configService.get('JWT_EXPIRES'));
+        secret: configService.get('nombre en env'),
+        signOptions: {
+          expiresIn: configService.get('nombre en env'),
+        },
+      }),
+    }),
+    UsersModule,
+  ],
+```
+
+## JWT configuracion
+
+es un provider
+
+crear archivo algo.strategy.ts
+
+```ts
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { User } from 'src/users/entities/user.entity';
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(configService: ConfigService) {
+    super({
+      secretOrKey: configService.get('JWT_SECRET'),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    });
+  }
+  async validate(payload: any): Promise<User> {
+    throw new UnauthorizedException('Token not valid...');
+  }
+}
+```
+
+luego, en el auth.service:
+
+```ts
+//en el constructor
+private readonly jwtService: JwtService,
+
+// dentro del signUp y el login
+    const token = this.jwtService.sign({ id: user.id });
+```
+
+## JWT auth guard
+
+useGuard de API no funciona en GQL
+
+crear el archivo jwt-auth.guard.ts
+
+```ts
+import { ExecutionContext } from '@nestjs/common';
+import { GqlExecutionContext } from '@nestjs/graphql';
+import { AuthGuard } from '@nestjs/passport';
+
+export class JwtAuthGuard extends AuthGuard('jwt') {
+  // ! override
+  getRequest(context: ExecutionContext) {
+    const ctx = GqlExecutionContext.create(context);
+    const request = ctx.getContext().req;
+    return request;
+  }
+}
+```
+
+## jwt-interface
+
+no crea instancias de nada, es solo para verificar el payload
+
+## decorator
+
+para usar la query revalidateToken usando el usuario logeado
+
+curent User usa el contexto entregado por el decorador creado
+
+en este ejemplo, los roles se implementan como un ENUM
+
+## proteger rutas
+
+@useGuards(JwtAuthGuard) en el resolver objetivo
