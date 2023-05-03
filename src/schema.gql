@@ -2,13 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Item {
-  id: ID!
-  name: String!
-  quantity: Float!
-  quantityUnits: String
-}
-
 type User {
   id: ID!
   fullName: String!
@@ -17,6 +10,16 @@ type User {
   roles: [String!]!
   isActive: Boolean!
   updatedBy: User
+  items: [Item!]!
+  itemCount: Int!
+}
+
+type Item {
+  id: ID!
+  name: String!
+  quantity: Float!
+  quantityUnits: String
+  user: User!
 }
 
 type AuthResponse {
@@ -26,10 +29,10 @@ type AuthResponse {
 
 type Query {
   """get all items in DB"""
-  findAll: [Item!]!
+  findAllItems: [Item!]!
 
   """get items in DB by ID"""
-  findOne(id: ID!): Item!
+  findItemById(id: ID!): Item!
   findAllUsers(roles: [ValidRoles!] = []): [User!]!
   findOneUserByID(id: ID!): User!
   revalidateToken: AuthResponse!
@@ -47,10 +50,10 @@ type Mutation {
   createItem(createItemInput: CreateItemInput!): Item!
 
   """update an item in DB by ID"""
-  updateItem(updateItemInput: UpdateItemInput!): Item!
+  updateItemById(updateItemInput: UpdateItemInput!): Item!
 
   """delete an item by ID"""
-  removeItem(id: ID!): Item!
+  deleteItemById(id: ID!): Item!
   blockUserByID(id: ID!): User!
   updateUserByID(updateUserInput: UpdateUserInput!): User!
   userSignUp(signUpInput: SignUpInput!): AuthResponse!
