@@ -264,3 +264,11 @@ en este ejemplo, los roles se implementan como un ENUM
 ## proteger rutas
 
 @useGuards(JwtAuthGuard) en el resolver objetivo
+
+# SEED DATA - cargar y purgar db
+
+usar junto a docker, que mantiene la DB aislada, -d en detach, tener una seed permite cargar datos de forma masiva
+
+crear el seed en un modulo nuevo, `nest g res seed --no-spec`
+
+crear un folder `data` e incluir el file con los datos a cargar

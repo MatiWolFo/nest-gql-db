@@ -11,6 +11,6 @@ import { ItemsModule } from 'src/items/items.module';
   // pasar la entity tipo class al modulo
   imports: [TypeOrmModule.forFeature([User]), ItemsModule],
   // para exportar servicios de este modulo a cualquiera
-  exports: [UsersService],
+  exports: [TypeOrmModule, UsersService],
 })
 export class UsersModule { }

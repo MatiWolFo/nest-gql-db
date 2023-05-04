@@ -14,9 +14,9 @@ export class Item {
   @Column()
   name: string;
 
-  @Field(() => Float)
-  @Column()
-  quantity: number;
+  @Field(() => Float, { nullable: true })
+  @Column({ nullable: true })
+  quantity?: number;
 
   // este campo es COMPLETAMENTE OPCIONAL, el primer nullable es de graphQL, el segundo es de la DB
   @Field(() => String, { nullable: true })

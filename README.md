@@ -24,38 +24,38 @@
 
 # RETRO STEPS
 
-## Installation
+# Installation
 
 ```bash
-$ git clone
+$ git clone <repo>
 ```
 
-Instalar yarn
+## Instalar yarn
 
 ```bash
 $ yarn install
 ```
 
-Para instalar class verificator
+## Para instalar class verificator
 
 ```bash
 yarn add class-validator class-transformer
 ```
 
-Para instalar BCrypt
+## Para instalar BCrypt
 
 ```bash
 yarn add bcrypt
 yarn add -D @types/bcrypt
 ```
 
-Para instalar TypeORM
+## Para instalar TypeORM
 
 ```bash
 yarn add @nestjs/typeorm typeorm pg
 ```
 
-Para instalar JWT passport
+## Para instalar JWT passport
 
 ```bash
 yarn add @nestjs/passport passport
@@ -64,7 +64,7 @@ yarn add @nestjs/jwt passport-jwt
 yarn add -D @types/passport-jwt
 ```
 
-Para que NEST lea las env
+## Para que NEST lea las env
 
 ```bash
 yarn add @nestjs/config
@@ -72,10 +72,18 @@ yarn add @nestjs/config
 Configurar .env segun template
 ```
 
-Levantar DOCKER
+## Levantar DOCKER
 
 ```bash
 $ docker-compose up -d
+```
+
+## Ejecutar mutation executeSeed para llenar DB
+
+```ts
+mutation Mutation {
+  executeSeedtoDB
+}
 ```
 
 ## Running the app
@@ -89,4 +97,10 @@ $ yarn run start:dev
 
 # production mode
 $ yarn run start:prod
+```
+
+## Apollo Studio
+
+```bash
+localhost:3000/graphql
 ```

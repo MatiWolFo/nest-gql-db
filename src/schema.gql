@@ -17,7 +17,7 @@ type User {
 type Item {
   id: ID!
   name: String!
-  quantity: Float!
+  quantity: Float
   quantityUnits: String
   user: User!
 }
@@ -58,17 +58,16 @@ type Mutation {
   updateUserByID(updateUserInput: UpdateUserInput!): User!
   userSignUp(signUpInput: SignUpInput!): AuthResponse!
   userLogIn(loginInput: LoginInput!): AuthResponse!
+  executeSeedtoDB: Boolean!
 }
 
 input CreateItemInput {
   name: String!
-  quantity: Float!
   quantityUnits: String
 }
 
 input UpdateItemInput {
   name: String
-  quantity: Float
   quantityUnits: String
   id: ID!
 }
