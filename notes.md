@@ -44,7 +44,17 @@ DB_USERNAME = xxxx;
 .env
 .env/
 
+## basicos de docker CLI
+
+docker-compose up crear
+docker-compose down borrar
+docker-compose up -d crear detached
+docker-compose down -v borrar y borrar volumenes
+docker-compose stop detener
+
 ## conectar a tablePlus o similar para ver y administrar la db usando las .env
+
+abrir tableplus > click derecho > new connection > postgres > localhost > user: postgres > password: xxxx > database: xxxx > save > connect
 
 ## para que NEST pueda leer las variables de entorno
 
@@ -269,6 +279,141 @@ en este ejemplo, los roles se implementan como un ENUM
 
 usar junto a docker, que mantiene la DB aislada, -d en detach, tener una seed permite cargar datos de forma masiva
 
-crear el seed en un modulo nuevo, `nest g res seed --no-spec`
+crear el seed en un modulo nuevo, `nest g res seed --no-spec` para que no cree la prueba
 
 crear un folder `data` e incluir el file con los datos a cargar
+
+Luego: crear resolver, crear service, los metodos
+
+## proteccion de la ejecucion del seed
+
+```ts
+agrega este flag en el seed service
+private isProd: boolean;
+```
+
+# paginacion y filtros
+
+Se crea una CLASS ARGS para la query, que recibe los parametros de paginacion y filtros `nest g mo common`, ya que es un dto que se puede usar en varios modulos en la app
+
+la estructura basica de un pagination args es:
+
+```ts
+import { ArgsType, Field, Int } from '@nestjs/graphql';
+import { IsOptional, Min } from 'class-validator';
+
+@ArgsType()
+export class PaginationArgs {
+  @Field(() => Int, { nullable: true, defaultValue: 0 })
+  @IsOptional()
+  @Min(0)
+  offset?: number;
+
+  @Field(() => Int, { nullable: true, defaultValue: 10 })
+  @IsOptional()
+  @Min(1)
+  limit?: number;
+}
+```
+
+Luego, agregar estos ARGS en la query del resolver de preferencia usando
+
+```ts
+take: limit,
+skip: offset,
+```
+
+Para agregar un filtro de tipo search, se crea un nuevo dto, que recibe el string de busqueda, con condiciones opcionales
+
+```ts
+import { ArgsType, Field } from '@nestjs/graphql';
+import { IsOptional, IsString } from 'class-validator';
+
+@ArgsType()
+export class SearchArgs {
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  search?: string;
+}
+```
+
+Para evitar problemas usando variados ARGS, desactivar `forbidNonWhitelisted: true,` en el main.ts
+
+## creacion de una lista merge de 2 tablas, o tabla intermedia
+
+una tabla intermedia, generalmente trabaja con ManyToOne en la intermedia, y OneToMany en las tablas que se relacionan con la intermedia
+
+```ts
+EJ:
+// tabla intermedia
+  @ManyToOne(() => List, (list) => list.listItem, {
+    lazy: true,
+  })
+  @Field(() => List)
+  list: List;
+
+  @ManyToOne(() => Item, (item) => item.listItem, {
+    lazy: true,
+  })
+  @Field(() => Item)
+  item: Item;
+
+// tabla origen 1
+  @OneToMany(() => ListItem, (listItem) => listItem.list, {
+    lazy: true,
+  })
+  @Field(() => [ListItem])
+  listItem: ListItem[];
+
+// tabla origen 2
+  @OneToMany(() => ListItem, (listItem) => listItem.item, {
+    lazy: true,
+  })
+  @Field(() => [ListItem])
+  listItem: ListItem[];
+```
+
+## constraints
+
+ayudan a evitar duplicados en la db, se pueden usar en las entidades via typeORM
+
+```ts
+@Unique('listItem-item', ['list','item']).
+```
+
+## problemas de dependencias circulares
+
+para solucionar esto, se puede usar el forwardRef, que permite importar un modulo que aun no ha sido creado, pero que se creara en el futuro
+
+```ts
+import { forwardRef, Module } from '@nestjs/common';
+
+imports: [forwardRef(() => exampleBModule)]; // en modulo A,
+imports: [forwardRef(() => exampleAModule)]; // en modulo B
+```
+
+# DESPLIEGUE (solo parte de docker)
+
+## crear imagen dockerFile
+
+hacer una configuracion en docker-compose.yml para explicar como se va a crear la imagen
+
+Build
+docker-compose -f docker-compose.prod.yml --env-file .env.prod up --build
+
+Run
+docker-compose -f docker-compose.prod.yml --env-file .env.prod up
+
+Nota
+Por defecto, docker-compose usa el archivo .env, por lo que si tienen el archivo .env y lo configuran con sus variables de entorno de producción, bastaría con
+
+docker-compose -f docker-compose.prod.yml up --build
+Cambiar nombre
+docker tag <nombre app> <usuario docker hub>/<nombre repositorio>
+Ingresar a Docker Hub
+
+docker login
+Subir imagen
+
+docker push <usuario docker hub>/<nombre repositorio>

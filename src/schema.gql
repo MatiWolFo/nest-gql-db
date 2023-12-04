@@ -10,8 +10,26 @@ type User {
   roles: [String!]!
   isActive: Boolean!
   updatedBy: User
-  items: [Item!]!
   itemCount: Int!
+  items(offset: Int = 0, limit: Int = 10, search: String): [Item!]!
+  listCount: Int!
+  lists(offset: Int = 0, limit: Int = 10, search: String): [List!]!
+}
+
+type List {
+  id: ID!
+  name: String!
+  user: User!
+  listItem(offset: Int = 0, limit: Int = 10, search: String): [ListItem!]!
+  totalItems: Float!
+}
+
+type ListItem {
+  id: ID!
+  quantity: Float!
+  completed: Boolean!
+  list: List!
+  item: Item!
 }
 
 type Item {
@@ -20,6 +38,7 @@ type Item {
   quantity: Float
   quantityUnits: String
   user: User!
+  listItem: [ListItem!]!
 }
 
 type AuthResponse {
@@ -29,12 +48,21 @@ type AuthResponse {
 
 type Query {
   """get all items in DB"""
-  findAllItems: [Item!]!
+  findAllItems(offset: Int = 0, limit: Int = 10, search: String): [Item!]!
 
   """get items in DB by ID"""
   findItemById(id: ID!): Item!
   findAllUsers(roles: [ValidRoles!] = []): [User!]!
   findOneUserByID(id: ID!): User!
+
+  """get all lists in DB"""
+  findAllLists(offset: Int = 0, limit: Int = 10, search: String): [List!]!
+
+  """get lists in DB by ID"""
+  findListById(id: ID!): List!
+
+  """get listItem in DB by ID"""
+  findLisItemstById(id: ID!): ListItem!
   revalidateToken: AuthResponse!
 }
 
@@ -56,6 +84,19 @@ type Mutation {
   deleteItemById(id: ID!): Item!
   blockUserByID(id: ID!): User!
   updateUserByID(updateUserInput: UpdateUserInput!): User!
+
+  """create a list to DB"""
+  createList(createListInput: CreateListInput!): List!
+
+  """update a list in DB by ID"""
+  updateListById(updateListInput: UpdateListInput!): List!
+
+  """delete a list by ID"""
+  deleteListById(id: ID!): List!
+  createListItem(createListItemInput: CreateListItemInput!): ListItem!
+
+  """Update listItem info in DB by ID"""
+  updateListItemById(updateListItemInput: UpdateListItemInput!): ListItem!
   userSignUp(signUpInput: SignUpInput!): AuthResponse!
   userLogIn(loginInput: LoginInput!): AuthResponse!
   executeSeedtoDB: Boolean!
@@ -63,11 +104,13 @@ type Mutation {
 
 input CreateItemInput {
   name: String!
+  quantity: Float
   quantityUnits: String
 }
 
 input UpdateItemInput {
   name: String
+  quantity: Float
   quantityUnits: String
   id: ID!
 }
@@ -79,6 +122,30 @@ input UpdateUserInput {
   id: ID!
   roles: [ValidRoles!]
   isActive: Boolean
+}
+
+input CreateListInput {
+  name: String!
+}
+
+input UpdateListInput {
+  name: String
+  id: ID!
+}
+
+input CreateListItemInput {
+  quantity: Float = 0
+  completed: Boolean = false
+  listId: ID!
+  itemId: ID!
+}
+
+input UpdateListItemInput {
+  quantity: Float = 0
+  completed: Boolean = false
+  listId: ID
+  itemId: ID
+  id: ID!
 }
 
 input SignUpInput {

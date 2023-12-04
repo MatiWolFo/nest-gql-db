@@ -1,6 +1,14 @@
 import { ObjectType, Field, ID, Float } from '@nestjs/graphql';
+import { ListItem } from 'src/list-item/entities/list-item.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity({ name: 'items' })
 @ObjectType()
@@ -32,4 +40,12 @@ export class Item {
   // le dice a la operacion que va a usar 'ESTE' campo para la operacion
   @Index('userId-index')
   user: User;
+
+  //! RELACION ITEM-LIST
+  // 1 item puede estar en varias listas
+  @OneToMany(() => ListItem, (listItem) => listItem.item, {
+    lazy: true,
+  })
+  @Field(() => [ListItem])
+  listItem: ListItem[];
 }

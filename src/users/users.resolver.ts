@@ -17,6 +17,10 @@ import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { ValidRoles } from 'src/auth/enums/valid-roles.enum';
 import { UpdateUserInput } from './dto/update-user.input';
 import { ItemsService } from 'src/items/items.service';
+import { Item } from 'src/items/entities/item.entity';
+import { PaginationArgs, SearchArgs } from 'src/common/dto/args';
+import { List } from 'src/lists/entities/list.entity';
+import { ListsService } from 'src/lists/lists.service';
 
 @Resolver(() => User)
 // protege todo el resolver
@@ -25,6 +29,7 @@ export class UsersResolver {
   constructor(
     private readonly usersService: UsersService,
     private readonly itemsService: ItemsService,
+    private readonly listsService: ListsService,
   ) { }
 
   @Query(() => [User], { name: 'findAllUsers' })
@@ -74,5 +79,35 @@ export class UsersResolver {
   ): Promise<number> {
     // usar el usuario para calcular el numero de items que tiene ese usuario
     return this.itemsService.itemCountByUser(user);
+  }
+
+  @ResolveField(() => [Item], { name: 'items' })
+  async items(
+    @CurrentUser([ValidRoles.admin]) adminUser: User,
+    @Parent() user: User,
+    // se le agregan los ARGS de busqueda y paginacion
+    // esto hace que el campo calculado por el resolvefield pueda usar los argumentos de busqueda y paginacion
+    @Args() paginationArgs: PaginationArgs,
+    @Args() searchArgs: SearchArgs,
+  ): Promise<Item[]> {
+    return this.itemsService.findAll(user, paginationArgs, searchArgs)
+  }
+
+  @ResolveField(() => Int, { name: 'listCount' })
+  async listCount(
+    @CurrentUser([ValidRoles.admin]) adminUser: User,
+    @Parent() user: User,
+  ): Promise<number> {
+    return this.listsService.listCountByUser(user);
+  }
+
+  @ResolveField(() => [List], { name: 'lists' })
+  async lists(
+    @CurrentUser([ValidRoles.admin]) adminUser: User,
+    @Parent() user: User,
+    @Args() paginationArgs: PaginationArgs,
+    @Args() searchArgs: SearchArgs,
+  ): Promise<List[]> {
+    return this.listsService.findAll(user, paginationArgs, searchArgs)
   }
 }

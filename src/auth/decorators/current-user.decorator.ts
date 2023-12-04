@@ -28,7 +28,7 @@ export const CurrentUser = createParamDecorator(
     }
     // si no encuentra un rol valido
     throw new ForbiddenException(
-      `User ${user.email} needs a valid role: ${roles}...`
+      `User ${user.email} needs a valid role: ${roles}...`,
     );
   },
 );

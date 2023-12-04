@@ -41,7 +41,8 @@ export class AuthService {
     if (!bcrypt.compareSync(loginInput.password, user.password)) {
       throw new BadRequestException('Invalid password...');
     }
-    const token = this.getJWT(user.id);
+    const tokenValue = this.getJWT(user.id);
+    const token = `Bearer ${tokenValue}`;
     return { token, user };
   }
 

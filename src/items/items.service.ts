@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateItemInput, UpdateItemInput } from './dto/inputs';
 import { Item } from './entities/item.entity';
 import { User } from 'src/users/entities/user.entity';
+import { PaginationArgs, SearchArgs } from 'src/common/dto/args';
 
 @Injectable()
 export class ItemsService {
@@ -20,14 +21,57 @@ export class ItemsService {
     return newItem;
   }
 
-  async findAll(user: User): Promise<Item[]> {
-    return await this.itemsRepository.find({
-      where: {
-        user: {
-          id: user.id,
-        },
-      },
-    });
+  async findAll(
+    user: User,
+    paginationArgs: PaginationArgs,
+    searchArgs: SearchArgs,
+  ): Promise<Item[]> {
+    // se le agregan los argumentos de paginacion y filtrado
+    const { limit, offset } = paginationArgs;
+    const { search } = searchArgs;
+
+    // return await this.itemsRepository.find({
+    //   // aplica TAKE para tomar los argumentos de paginacion y el SKIP para usar un offset
+    //   take: limit,
+    //   skip: offset,
+    //   where: {
+    //     user: {
+    //       id: user.id,
+    //     },
+    //     // aca se agrega la busqueda semantica del search, usar Like de typeorm para evitar SQL injection
+    //     name: Like(`%${search}%`),
+    //   },
+    // });
+
+    // ! AGREGANDO UN QUERY BUILDER para hacer una consulta mas compleja de forma dinamica y mas simple
+    const queryBuilder = this.itemsRepository
+      .createQueryBuilder()
+      .take(limit)
+      .skip(offset)
+      // crea la query con el where y usa el valor de user.id, as :userId que apunta a la columna "userId"
+      .where(`"userId" = :userId`, { userId: user.id });
+
+    if (search) {
+      // si hay un search, se agrega el where con el queryBuilder
+      // queryBuilder.orWhere('LOWER("name") like :name', {
+      //   name: `%${search.toLowerCase()}%`,
+      // });
+
+      // queryBuilder.orWhere('LOWER("quantityUnits") LIKE :quantityUnits', {
+      //   quantityUnits: `%${search.toLowerCase()}%`,
+      // });
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.orWhere('LOWER("name") LIKE :name', {
+            name: `%${search.toLowerCase()}%`,
+          }).orWhere('LOWER("quantityUnits") LIKE :quantityUnits', {
+            quantityUnits: `%${search.toLowerCase()}%`,
+          });
+        }),
+      );
+    }
+
+    return await queryBuilder.getMany();
   }
 
   async findOne(id: string, user: User): Promise<Item> {

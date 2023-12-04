@@ -1,5 +1,6 @@
 import { ObjectType, Field, ID } from '@nestjs/graphql';
 import { Item } from 'src/items/entities/item.entity';
+import { List } from 'src/lists/entities/list.entity';
 import {
   Column,
   Entity,
@@ -56,7 +57,14 @@ export class User {
   updatedBy?: User;
 
   //! RELACION ITEM-USUARIO
-  @Field(() => [Item])
+  // se comenta este para eliminar esta dependendia que se le da a graphql
+  // @Field(() => [Item])
+  // @OneToMany(() => Item, (item) => item.user, { nullable: false, lazy: true })
+  // items: Item[];
+
   @OneToMany(() => Item, (item) => item.user, { nullable: false, lazy: true })
   items: Item[];
+
+  @OneToMany(() => List, (list) => list.user, { nullable: false, lazy: true })
+  lists: List[];
 }
